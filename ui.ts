@@ -29,7 +29,7 @@ var ui = {
 	armPosition: document.getElementById('arm-position') as HTMLInputElement
 }
 let address = <HTMLInputElement>document.getElementById('connect-address'),
-	connect = <HTMLButtonElement>document.getElementById('connect')
+	connect = <HTMLButtonElement>document.getElementById('connect'), noElectron = false
 
 // Sets function to be called on NetworkTables connect. Commented out because it's usually not necessary.
 // NetworkTables.addWsConnectionListener(onNetworkTablesConnection, true);
@@ -38,16 +38,16 @@ NetworkTables.addRobotConnectionListener(onRobotConnection, false);
 // Sets function to be called when any NetworkTables key/value changes
 NetworkTables.addGlobalListener(onValueChanged, true);
 
-let escCount=0
-onkeydown = key=>{
-	if(key.key === 'Escape'){
-		setTimeout(()=>{escCount=0},400)
+let escCount = 0
+onkeydown = key => {
+	if (key.key === 'Escape') {
+		setTimeout(() => { escCount = 0 }, 400)
 		escCount++
 		console.log(escCount)
-		if(escCount===2){
+		if (escCount === 2) {
 			document.body.classList.toggle('login-close', true)
 		}
-	}else console.log(key.key)
+	} else console.log(key.key)
 }
 if (noElectron) {
 	document.body.classList.add('login-close')

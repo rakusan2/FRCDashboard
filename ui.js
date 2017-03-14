@@ -28,7 +28,7 @@ var ui = {
     autoSelect: document.getElementById('auto-select'),
     armPosition: document.getElementById('arm-position')
 };
-let address = document.getElementById('connect-address'), connect = document.getElementById('connect');
+let address = document.getElementById('connect-address'), connect = document.getElementById('connect'), noElectron = false;
 // Sets function to be called on NetworkTables connect. Commented out because it's usually not necessary.
 // NetworkTables.addWsConnectionListener(onNetworkTablesConnection, true);
 // Sets function to be called when robot dis/connects
