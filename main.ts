@@ -1,6 +1,7 @@
 import * as electron from "electron"
 import * as child_process from "child_process"
 import * as wpilib_NT from 'wpilib-nt-client'
+import * as fs from 'fs'
 
 const client = new wpilib_NT.Client()
 
@@ -50,6 +51,10 @@ function createWindow() {
     })
     ipc.on('update', (ev, mesg: respMesg) => {
         client.Update(mesg.id, mesg.val)
+    })
+    ipc.on('devTools',(ev,show:boolean)=>{
+        if(show)mainWindow.webContents.openDevTools()
+        else mainWindow.webContents.closeDevTools()
     })
     // Listens to the changes coming from the client
     client.addListener((key, val, valType, mesgType, id, flags) => {
@@ -112,3 +117,36 @@ app.on("activate", function () {
         createWindow();
     }
 });
+
+function fsPromise(src:string){
+    return new Promise((res,rej)=>[
+        fs.readFile(src,'utf8',(err,data)=>{
+            if(err){
+                rej(err)
+            }else{
+                res(JSON.parse(data))
+            }
+        })
+    ])
+}
+interface options{
+    modules:{
+        name:string
+        mainFile:string
+        optionsFile:string
+        type:string
+        key:string
+    }[]
+    locations:{
+        [key:string]:{
+            x:number
+            y:number
+            sizeX:number
+            sizeY:number
+        }
+    }
+    connect:string
+}
+interface moduleOptions{
+
+}

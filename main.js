@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const electron = require("electron");
 const wpilib_NT = require("wpilib-nt-client");
+const fs = require("fs");
 const client = new wpilib_NT.Client();
 // Module to control application life.
 const app = electron.app;
@@ -46,6 +47,12 @@ function createWindow() {
     });
     ipc.on('update', (ev, mesg) => {
         client.Update(mesg.id, mesg.val);
+    });
+    ipc.on('devTools', (ev, show) => {
+        if (show)
+            mainWindow.webContents.openDevTools();
+        else
+            mainWindow.webContents.closeDevTools();
     });
     // Listens to the changes coming from the client
     client.addListener((key, val, valType, mesgType, id, flags) => {
@@ -103,3 +110,15 @@ app.on("activate", function () {
         createWindow();
     }
 });
+function fsPromise(src) {
+    return new Promise((res, rej) => [
+        fs.readFile(src, 'utf8', (err, data) => {
+            if (err) {
+                rej(err);
+            }
+            else {
+                res(JSON.parse(data));
+            }
+        })
+    ]);
+}

@@ -3,7 +3,8 @@ let mainTable: table = { subTables: {}, numSub: 0 },
     connected = false,
     connectListeners: ((con: boolean) => any)[] = [],
     shareCalls: { [key: string]: ((mod: Object) => any)[] } = {},
-    shared: { [key: string]: object } = {}
+    shared: { [key: string]: object } = {},
+    modules: { [name: string]: { description: string, type: string, onCreate: () => HTMLElement | HTMLElement[] } } = {}
 ipc.send('ready')
 ipc.on('connected', (ev, con: boolean) => {
     connected = con
@@ -23,7 +24,6 @@ ipc.on('add', (ev, mesg: clientMesg) => {
     let name = keys[lastI]
     if (name === "~type~") {
         tab.type = mesg.val
-
     }
     if (!(name in tab.vals)) {
         tab.numSub++
@@ -48,7 +48,7 @@ ipc.on('flagChange', (ev, mesg: clientMesg) => {
  */
 function rm(table: table, keys: string[], index: number) {
     if (table.numSub === 0) return true
-    else if (index === keys.length-1) {
+    else if (index === keys.length - 1) {
         if (table.numSub > 0) {
             delete table.vals[keys[index]]
             return false
@@ -66,8 +66,8 @@ function rm(table: table, keys: string[], index: number) {
 }
 
 function update(table: table, keys: string[], index: number, val: any, flags: number) {
-    if (keys.length === index-1) {
-        let valT=table.vals[keys[index]]
+    if (keys.length === index - 1) {
+        let valT = table.vals[keys[index]]
         if (val != null) valT.val = val
         valT.flags = flags
     }
@@ -76,8 +76,8 @@ function update(table: table, keys: string[], index: number, val: any, flags: nu
     }
 }
 
-function addModule(callback: (modules, exports) => any) {
-    let modules: modules = {
+function addModule(callback: (mod, exports) => any) {
+    let mod: modules = {
         getShared: (mod, callback) => {
             if (mod in shared) {
                 callback(shared[mod])
@@ -89,21 +89,21 @@ function addModule(callback: (modules, exports) => any) {
                 shareCalls[mod] = [callback]
             }
         }
-    }, exports = modules, name: string
-    callback(modules, exports)
-    if (!('name' in modules)) {
-        name = modules.name
+    }, exports = mod, name: string
+    callback(mod, exports)
+    if (!('name' in mod)) {
+        name = mod.name
         return
     }
-    if ('onConnect' in modules) {
-        connectListeners.push(modules.onConnect)
+    if ('onConnect' in mod) {
+        connectListeners.push(mod.onConnect)
     }
-    if ('shared' in modules) {
-        shared[name] = modules.shared
+    if ('shared' in mod && name) {
+        shared[name] = mod.shared
         if (name in shareCalls) {
             let calls = shareCalls[name]
             while (calls.length) {
-                calls.pop()(modules.shared)
+                calls.pop()(mod.shared)
             }
         }
     }
@@ -126,5 +126,6 @@ interface modules {
     onConnect?: (connected: boolean) => any,
     shared?: object
     getShared(mod: string, callback: (module: object) => any): void
+    require?: string[] | string
 }
-declare let modules: modules
+declare let mod: modules
